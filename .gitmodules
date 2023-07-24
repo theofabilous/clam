@@ -1,0 +1,4 @@
+[submodule "include/Cloak"]
+	path = include/Cloak
+	url = https://github.com/pfultz2/Cloak.git
+	branch = master
