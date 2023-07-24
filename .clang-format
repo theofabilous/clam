@@ -1,0 +1,15 @@
+---
+Language: Cpp
+AlignEscapedNewlines: Right
+AlignAfterOpenBracket: BlockIndent
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false
+IfMacros: ['IF']
+IndentPPDirectives: AfterHash
+TabWidth: 4
+IndentWidth: 4
+PPIndentWidth: 4
+UseTab: Never
+---

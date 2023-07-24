@@ -19,7 +19,7 @@
  * pitfall of MSVC's traditional preprocessor, and this may also
  * catch other invalid preprocessors.
  */
-#define INVALID_PP(...) INVALID_PP_IMPL(__VA_ARGS__, 1)
+#define INVALID_PP(...)            INVALID_PP_IMPL(__VA_ARGS__, 1)
 #define INVALID_PP_IMPL(a, b, ...) b
 /* A valid preprocessor will forward ~, 0 as two arguments to INVALID_PP_IMPL,
  * thus making the argument 'b' take the value 0.
@@ -27,77 +27,79 @@
  * the 'b' argument will take the value 1.
  */
 #if INVALID_PP(~, 0)
-#   if defined(_MSC_VER)
-#       error "Invalid preprocessor. Please use the /Zc:preprocessor switch"
-#   else
-#       error "Invalid preprocessor"
-#   endif
+#    if defined(_MSC_VER)
+#        error "Invalid preprocessor. Please use the /Zc:preprocessor switch"
+#    else
+#        error "Invalid preprocessor"
+#    endif
 #endif
 #undef INVALID_PP
 #undef INVALID_PP_IMPL
 
 #define GET_FIRST(x, ...) x
-#define WO_FIRST(x, ...) __VA_ARGS__
-#define VA_OPT_COMPAT(...) IF(PP_NARG(__VA_ARGS__))(EXPAND, EAT)
+#define WO_FIRST(x, ...)  __VA_ARGS__
+#define VA_OPT_COMPAT(...)                                                     \
+    IF (PP_NARG(__VA_ARGS__))                                                  \
+    (EXPAND, EAT)
 
 #define PARENS_DESTROY(...)
 #define PARENS_ADD_COMMA_IMPL(...) (__VA_ARGS__),
-#define PARENS_ADD_COMMA(...) PARENS_ADD_COMMA_IMPL __VA_ARGS__
-#define PARENS_ADD_COMMA_SURR(...) (PARENS_ADD_COMMA (__VA_ARGS__))
+#define PARENS_ADD_COMMA(...)      PARENS_ADD_COMMA_IMPL __VA_ARGS__
+#define PARENS_ADD_COMMA_SURR(...) (PARENS_ADD_COMMA(__VA_ARGS__))
 
-#define PARENS_EAT(...) PARENS_DESTROY __VA_ARGS__
-#define PARENS_KEEP(...) EXPAND( GET_FIRST PARENS_ADD_COMMA_SURR(__VA_ARGS__) )
+#define PARENS_EAT(...)  PARENS_DESTROY __VA_ARGS__
+#define PARENS_KEEP(...) EXPAND(GET_FIRST PARENS_ADD_COMMA_SURR(__VA_ARGS__))
 
 #define ID_LEFT_PARENS(...) (__VA_ARGS__
 
-#if !defined(USE_LOCAL_LABELS) && !defined(USE_STATEMENT_EXPRESSIONS) && !defined(USE_TRY_FINALLY)
-#   if defined(__GNUC__) || defined(__GNUG__)
-#       define USE_LOCAL_LABELS 1
-#       define USE_STATEMENT_EXPRESSIONS 1
-#       define USE_TRY_FINALLY 0
-#   elif defined(_MSC_VER) && defined(_MSC_EXTENSIONS)
-#       define USE_LOCAL_LABELS 0
-#       define USE_STATEMENT_EXPRESSIONS 0
-#       define USE_TRY_FINALLY 1
-#   endif
+#if !defined(USE_LOCAL_LABELS) && !defined(USE_STATEMENT_EXPRESSIONS) &&       \
+    !defined(USE_TRY_FINALLY)
+#    if defined(__GNUC__) || defined(__GNUG__)
+#        define USE_LOCAL_LABELS          1
+#        define USE_STATEMENT_EXPRESSIONS 1
+#        define USE_TRY_FINALLY           0
+#    elif defined(_MSC_VER) && defined(_MSC_EXTENSIONS)
+#        define USE_LOCAL_LABELS          0
+#        define USE_STATEMENT_EXPRESSIONS 0
+#        define USE_TRY_FINALLY           1
+#    endif
 #endif
 
 #if USE_LOCAL_LABELS
 
-#   define LAMBDA_EXPAND_BODY(_lambda)                          \
-        PARENS_EAT(_lambda)                                     \
-        _returnlabel:;
-#   if USE_STATEMENT_EXPRESSIONS
-#       define LAMBDA_EXPAND_BODY_R(rtype, _lambda)             \
-            rtype retval;                                       \
-            PARENS_EAT(_lambda)                                 \
-            _returnlabel:;                                      \
+#    define LAMBDA_EXPAND_BODY(_lambda)                                        \
+        PARENS_EAT(_lambda)                                                    \
+    _returnlabel:;
+#    if USE_STATEMENT_EXPRESSIONS
+#        define LAMBDA_EXPAND_BODY_R(rtype, _lambda)                           \
+            rtype retval;                                                      \
+            PARENS_EAT(_lambda)                                                \
+        _returnlabel:;                                                         \
             retval;
-#   endif
-#   define yield(...)  do {                                     \
-        VA_OPT_COMPAT(__VA_ARGS__)(retval = __VA_ARGS__;)       \
-        goto _returnlabel;                                      \
-    } while(0)
-#   define BEGIN_BLOCK(...)                                     \
-        __label__ _returnlabel;                                 \
+#    endif
+#    define yield(...)                                                         \
+        do {                                                                   \
+            VA_OPT_COMPAT(__VA_ARGS__)                                         \
+            (retval = __VA_ARGS__;) goto _returnlabel;                         \
+        } while (0)
+#    define BEGIN_BLOCK(...)                                                   \
+        __label__ _returnlabel;                                                \
         VA_OPT_COMPAT(__VA_ARGS__)(; __VA_ARGS__ retval)
 
 #elif USE_TRY_FINALLY
 
-#   define LAMBDA_EXPAND_BODY(_lambda)                          \
-        __try {                                                 \
-            PARENS_EAT(_lambda)                                 \
-        }                                                       \
-        __finally {                                             \
-            ((void)0);                                          \
+#    define LAMBDA_EXPAND_BODY(_lambda)                                        \
+        __try {                                                                \
+            PARENS_EAT(_lambda)                                                \
+        } __finally {                                                          \
+            ((void)0);                                                         \
         }
-#   define yield(...)  do {                                     \
-        VA_OPT_COMPAT(__VA_ARGS__)(retval = __VA_ARGS__;)       \
-        __leave;                                                \
-    } while(0)
-#   define BEGIN_BLOCK(...)                                     \
-        ((void)0)                                               \
-        VA_OPT_COMPAT(__VA_ARGS__)(; __VA_ARGS__ retval)
+#    define yield(...)                                                         \
+        do {                                                                   \
+            VA_OPT_COMPAT(__VA_ARGS__)(retval = __VA_ARGS__;) __leave;         \
+        } while (0)
+#    define BEGIN_BLOCK(...)                                                   \
+        ((void)0) VA_OPT_COMPAT(__VA_ARGS__)(; __VA_ARGS__ retval)
 
 #else
 /* If neither local labels nor try-finally blocks are used,
@@ -107,56 +109,65 @@
  * the lambda's body so that yield correctly 'returns' from the
  * lambda.
  */
-#   define LAMBDA_EXPAND_BODY(_lambda, ...)                     \
-        PARENS_EAT(_lambda)                                     \
+#    define LAMBDA_EXPAND_BODY(_lambda, ...)                                   \
+        PARENS_EAT(_lambda)                                                    \
         VA_OPT_COMPAT(__VA_ARGS__)(__VA_ARGS__:;)
-#   define yield(x,...) IF(PP_NARG(__VA_ARGS__))(               \
-        do { retval = x; goto __VA_ARGS__; } while(0),          \
-        goto x                                                  \
-    )
-#   define BEGIN_BLOCK(...) ((void)0)
+#    define yield(x, ...)                                                      \
+        IF (PP_NARG(__VA_ARGS__))                                              \
+        (                                                                      \
+            do {                                                               \
+                retval = x;                                                    \
+                goto __VA_ARGS__;                                              \
+            } while (0),                                                       \
+            goto x                                                             \
+        )
+#    define BEGIN_BLOCK(...) ((void)0)
 
 #endif
 
+#define LAMBDA_ASSIGN(MAC, types, ...)                                         \
+    EXPAND(MAC EXPAND(ID_LEFT_PARENS PARENS_KEEP(types), __VA_ARGS__)))
 
-#define LAMBDA_ASSIGN(MAC, types, ...)                          \
-    EXPAND(MAC                                                  \
-            EXPAND(ID_LEFT_PARENS                               \
-                PARENS_KEEP(types), __VA_ARGS__)))
+#define LAMBDA_GET_ARGS(types, ...) EXPAND(PP_NARG EXPAND(PARENS_KEEP(types)))
 
-#define LAMBDA_GET_ARGS(types, ...)                             \
-    EXPAND(PP_NARG EXPAND(PARENS_KEEP(types)))
-
-#define LAMBDA_ASSIGN_5(a1,a2,a3,a4,a5,x1,x2,x3,x4,x5)          \
-    a1=x1;a2=x2;a3=x3;a4=x4;a5=x5;
-#define LAMBDA_ASSIGN_4(a1,a2,a3,a4,x1,x2,x3,x4)                \
-    a1=x1;a2=x2;a3=x3;a4=x4;
-#define LAMBDA_ASSIGN_3(a1,a2,a3,x1,x2,x3)                      \
-    a1=x1;a2=x2;a3=x3;
-#define LAMBDA_ASSIGN_2(a1,a2,x1,x2)                            \
-    a1=x1;a2=x2;
-#define LAMBDA_ASSIGN_1(a1,x1)                                  \
-    a1=x1;
-#define LAMBDA_ASSIGN_0(...) ((void)0);
+#define LAMBDA_ASSIGN_5(a1, a2, a3, a4, a5, x1, x2, x3, x4, x5)                \
+    a1 = x1;                                                                   \
+    a2 = x2;                                                                   \
+    a3 = x3;                                                                   \
+    a4 = x4;                                                                   \
+    a5 = x5;
+#define LAMBDA_ASSIGN_4(a1, a2, a3, a4, x1, x2, x3, x4)                        \
+    a1 = x1;                                                                   \
+    a2 = x2;                                                                   \
+    a3 = x3;                                                                   \
+    a4 = x4;
+#define LAMBDA_ASSIGN_3(a1, a2, a3, x1, x2, x3)                                \
+    a1 = x1;                                                                   \
+    a2 = x2;                                                                   \
+    a3 = x3;
+#define LAMBDA_ASSIGN_2(a1, a2, x1, x2)                                        \
+    a1 = x1;                                                                   \
+    a2 = x2;
+#define LAMBDA_ASSIGN_1(a1, x1) a1 = x1;
+#define LAMBDA_ASSIGN_0(...)    ((void)0);
 
 #define LAMBDA_GET_ASSIGN_N(num) CAT(LAMBDA_ASSIGN_, num)
 
-#define LAMBDA_CALL(_lambda, ...)                               \
-    LAMBDA_ASSIGN(                                              \
-        LAMBDA_GET_ASSIGN_N( LAMBDA_GET_ARGS(_lambda) ),        \
-        _lambda, __VA_ARGS__                                    \
-    )                                                           \
+#define LAMBDA_CALL(_lambda, ...)                                              \
+    LAMBDA_ASSIGN(                                                             \
+        LAMBDA_GET_ASSIGN_N(LAMBDA_GET_ARGS(_lambda)), _lambda, __VA_ARGS__    \
+    )                                                                          \
     LAMBDA_EXPAND_BODY(_lambda)
 
 #if USE_STATEMENT_EXPRESSIONS && USE_LOCAL_LABELS
-#   define LAMBDA_CALL_R(rtype, _lambda, ...)                   \
-        ({                                                      \
-            __label__ _returnlabel;                             \
-            LAMBDA_ASSIGN(                                      \
-                LAMBDA_GET_ASSIGN_N( LAMBDA_GET_ARGS(_lambda) ),\
-                _lambda, __VA_ARGS__                            \
-            )                                                   \
-            LAMBDA_EXPAND_BODY_R(rtype, _lambda)                \
+#    define LAMBDA_CALL_R(rtype, _lambda, ...)                                 \
+        ({                                                                     \
+            __label__ _returnlabel;                                            \
+            LAMBDA_ASSIGN(                                                     \
+                LAMBDA_GET_ASSIGN_N(LAMBDA_GET_ARGS(_lambda)), _lambda,        \
+                __VA_ARGS__                                                    \
+            )                                                                  \
+            LAMBDA_EXPAND_BODY_R(rtype, _lambda)                               \
         })
 #endif
 
