@@ -18,34 +18,22 @@
 #define EXPAND9(...) __VA_ARGS__
 #define EXPAND0(...) __VA_ARGS__
 
-#define MAP_EACH_IMPL(op, ...)                      \
-    IF(COMPL(BOOL(DEC(PP_NARG(__VA_ARGS__)))))      \
-    (                                               \
-        op(__VA_ARGS__),                            \
-        op(GET_FIRST(__VA_ARGS__)),                 \
-        OBSTRUCT(MAP_EACH_IMPL_INDIRECT) ()         \
-        (                                           \
-            op, WO_FIRST(__VA_ARGS__)               \
-        )                                           \
-    )
+#define MAP_EACH_IMPL(op, ...)                                                 \
+    IF (COMPL(BOOL(DEC(PP_NARG(__VA_ARGS__)))))                                \
+    (op(__VA_ARGS__), op(GET_FIRST(__VA_ARGS__)),                              \
+     OBSTRUCT(MAP_EACH_IMPL_INDIRECT)()(op, WO_FIRST(__VA_ARGS__)))
 
 #define MAP_EACH_IMPL_INDIRECT() MAP_EACH_IMPL
-#define MAP_EACH(op, ...) EVAL(MAP_EACH_IMPL(op, __VA_ARGS__))
+#define MAP_EACH(op, ...)        EVAL(MAP_EACH_IMPL(op, __VA_ARGS__))
 
-
-#define MAP_EACH_NO_COMMA_IMPL(op, ...)                      \
-    IF(COMPL(BOOL(DEC(PP_NARG(__VA_ARGS__)))))      \
-    (                                               \
-        op(__VA_ARGS__),                            \
-        op(GET_FIRST(__VA_ARGS__))                 \
-        OBSTRUCT(MAP_EACH_NO_COMMA_IMPL_INDIRECT) ()         \
-        (                                           \
-            op, WO_FIRST(__VA_ARGS__)               \
-        )                                           \
-    )
+#define MAP_EACH_NO_COMMA_IMPL(op, ...)                                        \
+    IF (COMPL(BOOL(DEC(PP_NARG(__VA_ARGS__)))))                                \
+    (op(__VA_ARGS__),                                                          \
+     op(GET_FIRST(__VA_ARGS__)                                                 \
+     ) OBSTRUCT(MAP_EACH_NO_COMMA_IMPL_INDIRECT)()(op, WO_FIRST(__VA_ARGS__)))
 
 #define MAP_EACH_NO_COMMA_IMPL_INDIRECT() MAP_EACH_NO_COMMA_IMPL
-#define MAP_EACH_NO_COMMA(op, ...) EVAL(MAP_EACH_NO_COMMA_IMPL(op, __VA_ARGS__))
+#define MAP_EACH_NO_COMMA(op, ...)        EVAL(MAP_EACH_NO_COMMA_IMPL(op, __VA_ARGS__))
 
 /* Example usage:
  *  #define MY_OP_IMPL(x) # x
@@ -66,14 +54,11 @@
 #define CHECK_EQUAL_8_8 PROBE(~)
 #define CHECK_EQUAL_9_9 PROBE(~)
 
-#define CHECK_NUM_ARGS(n, ...) CHECK(\
-        CAT(\
-            CAT(CHECK_EQUAL_, n),\
-            CAT(_, PP_NARG(__VA_ARGS__))\
-            )\
-    )
+#define CHECK_NUM_ARGS(n, ...)                                                 \
+    CHECK(CAT(CAT(CHECK_EQUAL_, n), CAT(_, PP_NARG(__VA_ARGS__))))
 
 #define CHECK_LIST_NUM_ARGS(n, list) CHECK_NUM_ARGS(n, EXPAND list)
-#define CHECK_LAMBDA_NUM_ARGS(n, ...) CHECK_NUM_ARGS(n, LAMBDA_GET_ARGS(__VA_ARGS__))
+#define CHECK_LAMBDA_NUM_ARGS(n, ...)                                          \
+    CHECK_NUM_ARGS(n, LAMBDA_GET_ARGS(__VA_ARGS__))
 
 #endif // INCLUDE_COMMON_H_
