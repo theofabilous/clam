@@ -121,30 +121,23 @@
 
 #endif
 
-
 #define ASSIGN_FUNC(a, b) a = b;
-#define ASSIGN_OP(a) ASSIGN_FUNC a
+#define ASSIGN_OP(a)      ASSIGN_FUNC a
 
-#define LAMBDA_ASSIGN_IMPL(_lambda, args)      \
-    LIST_MAP(                               \
-        ASSIGN_OP,                          \
-        ZIP_TO_LIST(                        \
-            PARENS_KEEP(_lambda),           \
-            args                            \
-        )                                   \
-    )
+#define LAMBDA_ASSIGN_IMPL(_lambda, args)                                      \
+    LIST_MAP(ASSIGN_OP, ZIP_TO_LIST(PARENS_KEEP(_lambda), args))
 
-#define LAMBDA_ASSIGN(_lambda, args) REMOVE_COMMAS(LAMBDA_ASSIGN_IMPL(_lambda, args))
+#define LAMBDA_ASSIGN(_lambda, args)                                           \
+    REMOVE_COMMAS(LAMBDA_ASSIGN_IMPL(_lambda, args))
 
-#define LAMBDA_CALL_LIST(_lambda, args)         \
-    LAMBDA_ASSIGN(_lambda, args)           \
+#define LAMBDA_CALL_LIST(_lambda, args)                                        \
+    LAMBDA_ASSIGN(_lambda, args)                                               \
     LAMBDA_EXPAND_BODY(_lambda)
 
-#define LAMBDA_CALL(_lambda, ...)                   \
-    LAMBDA_CALL_LIST(_lambda, (__VA_ARGS__))
+#define LAMBDA_CALL(_lambda, ...) LAMBDA_CALL_LIST(_lambda, (__VA_ARGS__))
 
 #if USE_STATEMENT_EXPRESSIONS && USE_LOCAL_LABELS
-#    define LAMBDA_CALL_R(rtype, _lambda, args)                                 \
+#    define LAMBDA_CALL_R(rtype, _lambda, args)                                \
         ({                                                                     \
             __label__ _returnlabel;                                            \
             LAMBDA_ASSIGN(_lambda, args)                                       \
