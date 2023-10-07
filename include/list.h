@@ -14,12 +14,8 @@
 #define GET_NTH(n, ...)         EVAL(GET_NTH_IMPL(n, __VA_ARGS__))
 #define GET_LIST_NTH(n, list)   GET_NTH(n, EXPAND list)
 
-#define GET_LAST_EQ_1 0
-#define CHECK_SIZE_EQ_1(...)                                                   \
-    COMPL(BOOL(CAT(GET_LAST_EQ_, PP_NARG(__VA_ARGS__))))
-
 #define GET_LAST_IMPL(...)                                                     \
-    IF (CHECK_SIZE_EQ_1(__VA_ARGS__))                                          \
+    IF (HAS_ONE_ARG(__VA_ARGS__))                                              \
     (GET_FIRST(__VA_ARGS__),                                                   \
      OBSTRUCT(GET_LAST_IMPL_INDIRECT)()(WO_FIRST(__VA_ARGS__)))
 
@@ -27,7 +23,7 @@
 #define GET_LAST(...)            EVAL(GET_LAST_IMPL(__VA_ARGS__))
 
 #define ZIP_IMPL(l1, l2)                                                       \
-    IF (CHECK_SIZE_EQ_1 l1)                                                    \
+    IF (HAS_ONE_ARG l1)                                                        \
     ((GET_FIRST l1, GET_FIRST l2), (GET_FIRST l1, GET_FIRST l2),               \
      OBSTRUCT(ZIP_IMPL_INDIRECT)()((WO_FIRST l1), (WO_FIRST l2)))
 
