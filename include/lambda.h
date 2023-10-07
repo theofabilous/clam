@@ -46,8 +46,6 @@
 #define PARENS_EAT(...)  PARENS_DESTROY __VA_ARGS__
 #define PARENS_KEEP(...) EXPAND(GET_FIRST PARENS_ADD_COMMA_SURR(__VA_ARGS__))
 
-#define ID_LEFT_PARENS(...) (__VA_ARGS__
-
 #if !defined(USE_LOCAL_LABELS) && !defined(USE_STATEMENT_EXPRESSIONS) &&       \
     !defined(USE_TRY_FINALLY)
 #    if defined(__GNUC__) || defined(__GNUG__)
