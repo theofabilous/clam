@@ -5,7 +5,7 @@ ansi_basenames = $(basename $(notdir $(ansi_examples)))
 gnu_basenames = $(basename $(notdir $(gnu_examples)))
 ansi_examples_out = $(addprefix $(build_dir)/ansi/, $(ansi_basenames))
 gnu_examples_out = $(addprefix $(build_dir)/gnu/, $(gnu_basenames))
-format_targets = include/args.h include/lambda.h
+format_targets = include/args.h include/lambda.h include/list.h include/common.h
 
 .PHONY: format format-check clean
 
