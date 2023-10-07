@@ -3,6 +3,7 @@
 
 #include "Cloak/cloak.h"
 #include "args.h"
+#include "common.h"
 
 /*
  * MSVC's default preprocessor does not conform to the C standard (LMAO)
@@ -35,12 +36,6 @@
 #endif
 #undef INVALID_PP
 #undef INVALID_PP_IMPL
-
-#define GET_FIRST(x, ...) x
-#define WO_FIRST(x, ...)  __VA_ARGS__
-#define VA_OPT_COMPAT(...)                                                     \
-    IF (PP_NARG(__VA_ARGS__))                                                  \
-    (EXPAND, EAT)
 
 #define PARENS_DESTROY(...)
 #define PARENS_ADD_COMMA_IMPL(...) (__VA_ARGS__),
@@ -170,5 +165,11 @@
             LAMBDA_EXPAND_BODY_R(rtype, _lambda)                               \
         })
 #endif
+
+// CHECK_LAMBDA_NUM_ARGS(2, (l, l, l){ kjksjsk })
+
+// #if CHECK_LAMBDA_NUM_ARGS(2, (l){ kjksjsk })
+// #error
+// #endif
 
 #endif // INCLUDE_LAMBDA_H
