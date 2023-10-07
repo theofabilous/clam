@@ -4,7 +4,7 @@ examples_basenames = $(basename $(notdir $(examples)))
 examples_out = $(addprefix $(build_dir)/, $(examples_basenames))
 format_targets = include/args.h include/lambda.h include/list.h include/common.h
 
-.PHONY: format format-check clean
+.PHONY: format format-check clean examples
 
 format-check:
 	@clang-format -n $(format_targets)
@@ -13,7 +13,7 @@ format:
 	@clang-format -i $(format_targets)
 
 $(examples_out): $(build_dir)/% : examples/%.c
-	@echo $@ $<
+	$(CC) -o $@ $<
 
 $(examples_basenames): % : $(build_dir)/%
 

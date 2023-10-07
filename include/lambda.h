@@ -61,24 +61,29 @@
 
 #if USE_LOCAL_LABELS
 
+#    define RETURN_LABEL _returnlabel
+#    define RETURN_VALUE _returnvalue
+#    define PLACE_RETURN_LABEL                                                 \
+    RETURN_LABEL:;
+#    define DECL_RETURN_LABEL __label__ RETURN_LABEL;
 #    define LAMBDA_EXPAND_BODY(_lambda)                                        \
         PARENS_EAT(_lambda)                                                    \
-    _returnlabel:;
+        PLACE_RETURN_LABEL;
 #    if USE_STATEMENT_EXPRESSIONS
 #        define LAMBDA_EXPAND_BODY_R(rtype, _lambda)                           \
-            rtype retval;                                                      \
+            rtype RETURN_VALUE;                                                \
             PARENS_EAT(_lambda)                                                \
-        _returnlabel:;                                                         \
-            retval;
+            PLACE_RETURN_LABEL;                                                \
+            RETURN_VALUE;
 #    endif
 #    define yield(...)                                                         \
         do {                                                                   \
             VA_OPT_COMPAT(__VA_ARGS__)                                         \
-            (retval = __VA_ARGS__;) goto _returnlabel;                         \
+            (RETURN_VALUE = __VA_ARGS__;) goto RETURN_LABEL;                   \
         } while (0)
 #    define BEGIN_BLOCK(...)                                                   \
-        __label__ _returnlabel;                                                \
-        VA_OPT_COMPAT(__VA_ARGS__)(; __VA_ARGS__ retval)
+        DECL_RETURN_LABEL;                                                     \
+        VA_OPT_COMPAT(__VA_ARGS__)(; __VA_ARGS__ RETURN_VALUE)
 
 #elif USE_TRY_FINALLY
 
@@ -90,10 +95,10 @@
         }
 #    define yield(...)                                                         \
         do {                                                                   \
-            VA_OPT_COMPAT(__VA_ARGS__)(retval = __VA_ARGS__;) __leave;         \
+            VA_OPT_COMPAT(__VA_ARGS__)(RETURN_VALUE = __VA_ARGS__;) __leave;   \
         } while (0)
 #    define BEGIN_BLOCK(...)                                                   \
-        ((void)0) VA_OPT_COMPAT(__VA_ARGS__)(; __VA_ARGS__ retval)
+        ((void)0) VA_OPT_COMPAT(__VA_ARGS__)(; __VA_ARGS__ RETURN_VALUE)
 
 #else
 /* If neither local labels nor try-finally blocks are used,
@@ -110,7 +115,7 @@
         IF (PP_NARG(__VA_ARGS__))                                              \
         (                                                                      \
             do {                                                               \
-                retval = x;                                                    \
+                RETURN_VALUE = x;                                              \
                 goto __VA_ARGS__;                                              \
             } while (0),                                                       \
             goto x                                                             \
@@ -137,7 +142,7 @@
 #if USE_STATEMENT_EXPRESSIONS && USE_LOCAL_LABELS
 #    define LAMBDA_CALL_R(rtype, _lambda, args)                                \
         ({                                                                     \
-            __label__ _returnlabel;                                            \
+            DECL_RETURN_LABEL;                                                 \
             LAMBDA_ASSIGN(_lambda, args)                                       \
             LAMBDA_EXPAND_BODY_R(rtype, _lambda)                               \
         })
