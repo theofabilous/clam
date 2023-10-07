@@ -1,6 +1,6 @@
 #define USE_LOCAL_LABELS 0
 
-#include "../../include/lambda.h"
+#include "../include/lambda.h"
 #include <stdio.h>
 
 #define array_size(_array) (sizeof _array / sizeof _array[0])
