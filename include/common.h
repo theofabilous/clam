@@ -17,17 +17,6 @@
     IF (PP_NARG(__VA_ARGS__))                                                  \
     (EXPAND, EAT)
 
-#define EXPAND1(...) __VA_ARGS__
-#define EXPAND2(...) __VA_ARGS__
-#define EXPAND3(...) __VA_ARGS__
-#define EXPAND4(...) __VA_ARGS__
-#define EXPAND5(...) __VA_ARGS__
-#define EXPAND6(...) __VA_ARGS__
-#define EXPAND7(...) __VA_ARGS__
-#define EXPAND8(...) __VA_ARGS__
-#define EXPAND9(...) __VA_ARGS__
-#define EXPAND0(...) __VA_ARGS__
-
 #define MAP_EACH_IMPL(op, ...)                                                      \
     IF (HAS_ONE_ARG(__VA_ARGS__))                                                   \
     (op(__VA_ARGS__), op(GET_FIRST(__VA_ARGS__)),                                   \
