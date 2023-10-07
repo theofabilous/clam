@@ -4,6 +4,7 @@
 #include "Cloak/cloak.h"
 #include "args.h"
 #include "common.h"
+#include "list.h"
 
 /*
  * MSVC's default preprocessor does not conform to the C standard (LMAO)
@@ -120,56 +121,35 @@
 
 #endif
 
-#define LAMBDA_ASSIGN(MAC, types, ...)                                         \
-    EXPAND(MAC EXPAND(ID_LEFT_PARENS PARENS_KEEP(types), __VA_ARGS__)))
 
-#define LAMBDA_GET_ARGS(types, ...) EXPAND(PP_NARG EXPAND(PARENS_KEEP(types)))
+#define ASSIGN_FUNC(a, b) a = b;
+#define ASSIGN_OP(a) ASSIGN_FUNC a
 
-#define LAMBDA_ASSIGN_5(a1, a2, a3, a4, a5, x1, x2, x3, x4, x5)                \
-    a1 = x1;                                                                   \
-    a2 = x2;                                                                   \
-    a3 = x3;                                                                   \
-    a4 = x4;                                                                   \
-    a5 = x5;
-#define LAMBDA_ASSIGN_4(a1, a2, a3, a4, x1, x2, x3, x4)                        \
-    a1 = x1;                                                                   \
-    a2 = x2;                                                                   \
-    a3 = x3;                                                                   \
-    a4 = x4;
-#define LAMBDA_ASSIGN_3(a1, a2, a3, x1, x2, x3)                                \
-    a1 = x1;                                                                   \
-    a2 = x2;                                                                   \
-    a3 = x3;
-#define LAMBDA_ASSIGN_2(a1, a2, x1, x2)                                        \
-    a1 = x1;                                                                   \
-    a2 = x2;
-#define LAMBDA_ASSIGN_1(a1, x1) a1 = x1;
-#define LAMBDA_ASSIGN_0(...)    ((void)0);
+#define LAMBDA_ASSIGN_IMPL(_lambda, args)      \
+    LIST_MAP(                               \
+        ASSIGN_OP,                          \
+        ZIP_TO_LIST(                        \
+            PARENS_KEEP(_lambda),           \
+            args                            \
+        )                                   \
+    )
 
-#define LAMBDA_GET_ASSIGN_N(num) CAT(LAMBDA_ASSIGN_, num)
+#define LAMBDA_ASSIGN(_lambda, args) REMOVE_COMMAS(LAMBDA_ASSIGN_IMPL(_lambda, args))
 
-#define LAMBDA_CALL(_lambda, ...)                                              \
-    LAMBDA_ASSIGN(                                                             \
-        LAMBDA_GET_ASSIGN_N(LAMBDA_GET_ARGS(_lambda)), _lambda, __VA_ARGS__    \
-    )                                                                          \
+#define LAMBDA_CALL_LIST(_lambda, args)         \
+    LAMBDA_ASSIGN(_lambda, args)           \
     LAMBDA_EXPAND_BODY(_lambda)
 
+#define LAMBDA_CALL(_lambda, ...)                   \
+    LAMBDA_CALL_LIST(_lambda, (__VA_ARGS__))
+
 #if USE_STATEMENT_EXPRESSIONS && USE_LOCAL_LABELS
-#    define LAMBDA_CALL_R(rtype, _lambda, ...)                                 \
+#    define LAMBDA_CALL_R(rtype, _lambda, args)                                 \
         ({                                                                     \
             __label__ _returnlabel;                                            \
-            LAMBDA_ASSIGN(                                                     \
-                LAMBDA_GET_ASSIGN_N(LAMBDA_GET_ARGS(_lambda)), _lambda,        \
-                __VA_ARGS__                                                    \
-            )                                                                  \
+            LAMBDA_ASSIGN(_lambda, args)                                       \
             LAMBDA_EXPAND_BODY_R(rtype, _lambda)                               \
         })
 #endif
-
-// CHECK_LAMBDA_NUM_ARGS(2, (l, l, l){ kjksjsk })
-
-// #if CHECK_LAMBDA_NUM_ARGS(2, (l){ kjksjsk })
-// #error
-// #endif
 
 #endif // INCLUDE_LAMBDA_H
