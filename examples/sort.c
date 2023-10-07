@@ -7,6 +7,10 @@
 #define USE_LOCAL_LABELS 1
 #include "../include/lambda.h"
 
+/* NOTE: some of this code is taken from another one of my projects.
+ * So some design choices may seem nonsensical in this context.
+ */
+
 typedef union {
     uint64_t * restrict u64;
     uint32_t * restrict u32;
@@ -40,6 +44,7 @@ static inline void ptrswap(
 #undef SW
 }
 
+// assumes _i != _j, otherwise it's UB
 #define PTRSWAP(_data, _i, _j) (                                            \
     ptrswap(                                                                \
         (unsigned char *)((_data) + (_i)),                                  \
